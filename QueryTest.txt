@@ -1,0 +1,167 @@
+package com.inditex.lo.sccermic.model.util;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+
+
+import com.inditex.lo.sccermic.model.util.stub.PurchaseOrderQCStub;
+import org.junit.jupiter.api.Test;
+
+public class QueryUtilsTest {
+
+    @Test
+    void testParseObjectByPosition() {
+        Object[] objs = {1, 2};
+        assertNull(QueryUtils.parseObject(objs, 3, Integer.class));
+        assertEquals(Integer.valueOf(1), QueryUtils.parseObject(objs, 0, Integer.class));
+
+        assertNotNull(QueryUtils.parseObject(objs, 3, Integer.class, 1));
+        assertEquals(Integer.valueOf(1), QueryUtils.parseObject(objs, 0, Integer.class, 3));
+    }
+
+    @Test
+    void testParseObjectWithDefaultValue() {
+        assertEquals(Integer.valueOf(1), QueryUtils.parseObject("1", Integer.class, Integer.valueOf(1)));
+        assertEquals(Long.valueOf(1), QueryUtils.parseObject("1", Long.class, Long.valueOf(1)));
+        assertEquals(Float.valueOf(1), QueryUtils.parseObject("1", Float.class, Float.valueOf(1)));
+        assertEquals(Double.valueOf(1), QueryUtils.parseObject("1", Double.class, Double.valueOf(1)));
+        assertEquals(String.valueOf(1), QueryUtils.parseObject("1", String.class, String.valueOf(1)));
+        assertThat(BigDecimal.ONE).isEqualByComparingTo(QueryUtils.parseObject("1", BigDecimal.class, BigDecimal.valueOf(1)));
+        assertTrue(QueryUtils.parseObject("true", Boolean.class, true));
+
+    }
+
+    @Test
+    void testParseObjectForStringType() {
+        assertNull(QueryUtils.parseObjectForStringType(null));
+        assertNotNull(QueryUtils.parseObjectForStringType(3));
+        assertEquals("3", QueryUtils.parseObjectForStringType(3));
+    }
+
+    @Test
+    void testParseObjectsForDoubleType() {
+        assertNull(QueryUtils.parseObjectsForDoubleType(null));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType("3"));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType(Integer.valueOf(3)));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType(Double.valueOf(3)));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType(BigDecimal.valueOf(3)));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType(Long.valueOf(3)));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType(Short.valueOf("3")));
+        assertEquals(Double.valueOf(3), QueryUtils.parseObjectsForDoubleType(Float.valueOf(3)));
+        assertEquals(Double.valueOf(1), QueryUtils.parseObjectsForDoubleType(true));
+    }
+
+    @Test
+    void testParseObjectsForFloatType() {
+        assertNull(QueryUtils.parseObjectsForFloatType(null));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType("3"));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType(Integer.valueOf(3)));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType(Double.valueOf(3)));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType(BigDecimal.valueOf(3)));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType(Long.valueOf(3)));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType(Short.valueOf("3")));
+        assertEquals(Float.valueOf(3), QueryUtils.parseObjectsForFloatType(Float.valueOf(3)));
+        assertEquals(Float.valueOf(1), QueryUtils.parseObjectsForFloatType(true));
+    }
+
+    @Test
+    void testParseObjectsForIntegerType() {
+        assertNull(QueryUtils.parseObjectsForIntegerType(null));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType("3"));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType(Integer.valueOf(3)));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType(Double.valueOf(3)));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType(BigDecimal.valueOf(3)));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType(Long.valueOf(3)));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType(Short.valueOf("3")));
+        assertEquals(Integer.valueOf(3), QueryUtils.parseObjectsForIntegerType(Float.valueOf(3)));
+        assertEquals(Integer.valueOf(1), QueryUtils.parseObjectsForIntegerType(true));
+    }
+
+    @Test
+    void testParseObjectsForLongType() {
+        assertNull(QueryUtils.parseObjectsForLongType(null));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType("3"));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType(Integer.valueOf(3)));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType(Double.valueOf(3)));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType(BigDecimal.valueOf(3)));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType(Long.valueOf(3)));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType(Short.valueOf("3")));
+        assertEquals(Long.valueOf(3), QueryUtils.parseObjectsForLongType(Float.valueOf(3)));
+        assertEquals(Long.valueOf(1), QueryUtils.parseObjectsForLongType(true));
+    }
+
+    @Test
+    void testParseObjectsForBigDecimalType() {
+        assertNull(QueryUtils.parseObjectsForBigDecimalType(null));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType("3"));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(Integer.valueOf(3)));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(Double.valueOf(3)));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(BigDecimal.valueOf(3)));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(Short.valueOf("3")));
+        assertThat(BigDecimal.valueOf(1)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(true));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(Long.valueOf(3)));
+        assertThat(BigDecimal.valueOf(3)).isEqualByComparingTo(QueryUtils.parseObjectsForBigDecimalType(Float.valueOf(3)));
+
+    }
+
+    @Test
+    void testParseObjectsForBooleanType() {
+        assertNull(QueryUtils.parseObjectsForBooleanType(null, null));
+        assertTrue(QueryUtils.parseObjectsForBooleanType("true", null));
+        assertTrue(QueryUtils.parseObjectsForBooleanType(true, null));
+        assertTrue(QueryUtils.parseObjectsForBooleanType(Integer.valueOf(1), null));
+        assertTrue(QueryUtils.parseObjectsForBooleanType(Short.valueOf("1"), null));
+        assertTrue(QueryUtils.parseObjectsForBooleanType(BigDecimal.ONE, null));
+    }
+
+    @Test
+    void testParseObjectForLocalDate() {
+        OffsetDateTime offsetDateTime = OffsetDateTime.now();
+
+        assertNull(QueryUtils.parseObjectForLocalDate(null));
+        LocalDate localDate = offsetDateTime.toLocalDate();
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(localDate.toString()));
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(Date.from(offsetDateTime.toInstant())));
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(new java.util.Date(offsetDateTime.toInstant().toEpochMilli())));
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(Timestamp.from(offsetDateTime.toInstant())));
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(localDate));
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(offsetDateTime.toLocalDateTime()));
+        assertThat(localDate).isEqualTo(QueryUtils.parseObjectForLocalDate(offsetDateTime));
+    }
+
+    @Test
+    public void testToUTCOffsetDateTime_WhenReceiveDate_ReturnOffsetDateTime() {
+        Object[] mock = PurchaseOrderQCStub.getObjectByDefault();
+
+        OffsetDateTime offsetDateTime = QueryUtils.toUTCOffsetDateTime(mock, new AtomicInteger(8));
+        assertEquals("2022-02-22T21:22:22.220Z", offsetDateTime.toString());
+    }
+
+    @Test
+    public void testToUTCOffsetDateTime_WhenReceiveDate_ReturnOffsetDateTime2() {
+        Object[] mock = PurchaseOrderQCStub.getObjectByDefault2();
+
+        OffsetDateTime offsetDateTime = QueryUtils.toUTCOffsetDateTime(mock, new AtomicInteger(8));
+        assertEquals("2022-02-22T21:22:22.200Z", offsetDateTime.toString());
+    }
+
+    @Test
+    public void testToUTCOffsetDateTime_WhenReceiveNull_ReturnNull() {
+        Object[] mock = PurchaseOrderQCStub.getObjectByDefault();
+        mock[8] = null;
+
+        OffsetDateTime offsetDateTime = QueryUtils.toUTCOffsetDateTime(mock, new AtomicInteger(8));
+        assertNull( offsetDateTime);
+    }
+
+}
