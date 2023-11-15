@@ -1,0 +1,338 @@
+package com.inditex.lo.sccermic.model.util;
+
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class QueryUtils {
+    private static final ZoneId MARIADB_SERVER_TIME_ZONE_ID = ZoneId.of("CET");
+
+    private QueryUtils() {
+    }
+
+    /**
+     * Converts the object to the represented destination class type
+     *
+     * @param objs
+     * @param position
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    public static <T> T parseObject(Object[] objs, int position, Class<T> clazz) {
+        if (position >= objs.length) {
+            return null;
+        }
+        return parseObject(objs[position], clazz);
+    }
+
+    /**
+     * @param objs
+     * @param position
+     * @param clazz
+     * @param defaultVal
+     * @param <T>
+     * @return
+     */
+    public static <T> T parseObject(Object[] objs, int position, Class<T> clazz, T defaultVal) {
+        return Optional.ofNullable(parseObject(objs, position, clazz)).orElse(defaultVal);
+    }
+
+    /**
+     * @param obj
+     * @param clazz
+     * @param defaultVal
+     * @param <T>
+     * @return
+     */
+    public static <T> T parseObject(Object obj, Class<T> clazz, T defaultVal) {
+        return Optional.ofNullable(parseObject(obj, clazz)).orElse(defaultVal);
+    }
+
+    /**
+     * Converts the Object to the desirable target class type.
+     *
+     * @param obj
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    public static <T> T parseObject(Object obj, Class<T> clazz) {
+        if (clazz == Integer.class) {
+            return (T) parseObjectsForIntegerType(obj);
+        } else if (clazz == Float.class) {
+            return (T) parseObjectsForFloatType(obj);
+        } else if (clazz == Long.class) {
+            return (T) parseObjectsForLongType(obj);
+        } else if (clazz == BigDecimal.class) {
+            return (T) parseObjectsForBigDecimalType(obj);
+        } else if (clazz == Double.class) {
+            return (T) parseObjectsForDoubleType(obj);
+        } else if (clazz == Boolean.class) {
+            // pass a default null to escape sonar
+            return (T) parseObjectsForBooleanType(obj, null);
+        } else if (clazz == String.class) {
+            return (T) parseObjectForStringType(obj);
+        } else if (clazz == Instant.class) {
+            return (T) parseObjectForInstantType(obj);
+        } else if(clazz == LocalDate.class) {
+            return (T) parseObjectForLocalDate(obj);
+        }
+        return null;
+    }
+
+    private static Instant parseObjectForInstantType(final Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        }
+        final DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm:ss.S") 
+                .withZone(ZoneOffset.UTC); // Instant is always created with UTC offset
+        return Instant.from(formatter.parse(obj.toString()));
+    }
+
+
+    /**
+     * Converts the Object to String type.
+     *
+     * @param obj
+     * @return
+     */
+    public static String parseObjectForStringType(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        } else {
+            return String.valueOf(obj);
+        }
+    }
+
+    /**
+     * Converts the Object to Double Type
+     *
+     * @param obj
+     * @return
+     */
+    public static Double parseObjectsForDoubleType(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        } else if (obj instanceof Double) {
+            return ((Double) obj);
+        } else if (obj instanceof String) {
+            return Double.valueOf((String) obj);
+        } else if (obj instanceof Long) {
+            return ((Long) obj).doubleValue();
+        } else if (obj instanceof Integer) {
+            return ((Integer) obj).doubleValue();
+        } else if (obj instanceof BigDecimal) {
+            return ((BigDecimal) obj).doubleValue();
+        } else if (obj instanceof Short) {
+            return ((Short) obj).doubleValue();
+        } else if (obj instanceof Float) {
+            return ((Float) obj).doubleValue();
+        } else if (obj instanceof Boolean) {
+            return Boolean.TRUE.equals(obj) ? ONE.doubleValue() : ZERO.doubleValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts the Object to Float Type
+     *
+     * @param obj
+     * @return
+     */
+    public static Float parseObjectsForFloatType(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        } else if (obj instanceof Float) {
+            return ((Float) obj);
+        } else if (obj instanceof String) {
+            return Float.valueOf((String) obj);
+        } else if (obj instanceof Long) {
+            return ((Long) obj).floatValue();
+        } else if (obj instanceof Integer) {
+            return ((Integer) obj).floatValue();
+        } else if (obj instanceof BigDecimal) {
+            return ((BigDecimal) obj).floatValue();
+        } else if (obj instanceof Short) {
+            return ((Short) obj).floatValue();
+        } else if (obj instanceof Double) {
+            return ((Double) obj).floatValue();
+        } else if (obj instanceof Boolean) {
+            return Boolean.TRUE.equals(obj) ? ONE.floatValue() : ZERO.floatValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts the Object to Integer Type
+     *
+     * @param obj
+     * @return
+     */
+    public static Integer parseObjectsForIntegerType(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        } else if (obj instanceof Integer) {
+            return (Integer) obj;
+        } else if (obj instanceof String) {
+            return Integer.valueOf((String) obj);
+        } else if (obj instanceof Long) {
+            return ((Long) obj).intValue();
+        } else if (obj instanceof BigDecimal) {
+            return ((BigDecimal) obj).intValue();
+        } else if (obj instanceof Short) {
+            return ((Short) obj).intValue();
+        } else if (obj instanceof Double) {
+            return ((Double) obj).intValue();
+        } else if (obj instanceof Float) {
+            return ((Float) obj).intValue();
+        } else if (obj instanceof Boolean) {
+            return Boolean.TRUE.equals(obj) ? ONE.intValue() : ZERO.intValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts the Object to Long type
+     *
+     * @param obj
+     * @return
+     */
+    public static Long parseObjectsForLongType(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        } else if (obj instanceof Long) {
+            return ((Long) obj);
+        } else if (obj instanceof String) {
+            return Long.valueOf((String) obj);
+        } else if (obj instanceof Integer) {
+            return ((Integer) obj).longValue();
+        } else if (obj instanceof BigDecimal) {
+            return ((BigDecimal) obj).longValue();
+        } else if (obj instanceof Short) {
+            return ((Short) obj).longValue();
+        } else if (obj instanceof Double) {
+            return ((Double) obj).longValue();
+        } else if (obj instanceof Float) {
+            return ((Float) obj).longValue();
+        } else if (obj instanceof Boolean) {
+            return Boolean.TRUE.equals(obj) ? ONE.longValue() : ZERO.longValue();
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts the Object to BigDecimal data type.
+     *
+     * @param obj
+     * @return
+     */
+    public static BigDecimal parseObjectsForBigDecimalType(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        } else if (obj instanceof BigDecimal) {
+            return ((BigDecimal) obj);
+        } else if (obj instanceof String) {
+            return new BigDecimal((String) obj);
+        } else if (obj instanceof Long) {
+            return BigDecimal.valueOf((Long) obj);
+        } else if (obj instanceof Integer) {
+            return BigDecimal.valueOf((Integer) obj);
+        } else if (obj instanceof Short) {
+            return BigDecimal.valueOf((Short) obj);
+        } else if (obj instanceof Double) {
+            return BigDecimal.valueOf((Double) obj);
+        } else if (obj instanceof Float) {
+            return BigDecimal.valueOf((Float) obj);
+        } else if (obj instanceof Boolean) {
+            return ((Boolean) obj) ? ONE : ZERO;
+        }
+
+        return null;
+    }
+
+    public static Boolean parseObjectsForBooleanType(Object obj, Boolean defaultVal) {
+        if (Objects.isNull(obj)) {
+            return defaultVal;
+        } else if (obj instanceof Boolean) {
+            return (Boolean) obj;
+        } else if (obj instanceof String) {
+            return Boolean.parseBoolean((String) obj);
+        } else if (obj instanceof Integer) {
+            return ((Integer) obj).intValue() == 1;
+        } else if(obj instanceof Short) {
+            return ((Short) obj).intValue() == 1;
+        } else if(obj instanceof BigDecimal) {
+            return ONE.compareTo((BigDecimal) obj) == 0;
+        }
+
+        return defaultVal;
+    }
+    
+    public static LocalDate parseObjectForLocalDate(Object obj) {
+        if(Objects.isNull(obj)) {
+            return null;
+        } else if(obj instanceof String) {
+            return LocalDate.parse(obj.toString());
+        } else if(obj instanceof Date) {
+           return ((Date) obj).toLocalDate();
+        } else if(obj instanceof java.util.Date) {
+            return LocalDate.ofInstant(((java.util.Date) obj).toInstant(), ZoneId.from(ZoneOffset.UTC));
+        } else if(obj instanceof Timestamp) {
+            return ((Timestamp) obj).toLocalDateTime().toLocalDate();
+        } else if(obj instanceof LocalDate) {
+            return (LocalDate) obj;
+        } else if(obj instanceof LocalDateTime) {
+            return ((LocalDateTime) obj).toLocalDate();
+        } else if(obj instanceof OffsetDateTime) {
+            return ((OffsetDateTime) obj).toLocalDate();
+        }
+
+        return null;
+    }
+
+    /**
+     * MariaDB does not store offsets in datetime types, it shows date times in the configured timezone.
+     * The MariaDB used in this microservice is configured with the CET timezone, 
+     * it can be checked by running this query in the database:
+     * > SELECT @@global.time_zone, @@session.time_zone, @@system_time_zone;
+     * When raw queries are used the returned string has CET timezone, so we set it in the DateTimeFormatter.
+     * */
+    private static Instant parseObjectForInstantTypeMicroseconds(final Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        }
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendPattern("yyyy-MM-dd HH:mm:ss")
+                .appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true)
+                .toFormatter()
+                .withZone(MARIADB_SERVER_TIME_ZONE_ID);
+        return Instant.from(formatter.parse(obj.toString()));
+    }
+
+    public static OffsetDateTime toUTCOffsetDateTime(final Object[] row, AtomicInteger counter) {
+        final Instant instant = parseObjectForInstantTypeMicroseconds(row[counter.getAndIncrement()]);
+        return instant == null ? null : instant.atOffset(ZoneOffset.UTC);
+    }
+
+}
